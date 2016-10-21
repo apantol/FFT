@@ -27,9 +27,13 @@ module delay_line#(
             end
         end else begin
             if(valid_in) begin
-                FIFO[LEN-1:0] <= {data_in, FIFO[LEN:0]};
+                for(int i = 0; i < LEN; i++) begin
+                    FIFO[i] <= FIFO[i-1];
+                end
             end
         end
     end
+    
+    assign data_out = FIFO[LEN-1];
     
 endmodule

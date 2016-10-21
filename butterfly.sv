@@ -61,7 +61,7 @@ module butterfly
         end
     end
     
-    delay_line #(.DW   (BF_I-1), .LEN  (DLY)) dly_line_re (
+    delay_line #(.DW   (BF_I+1), .LEN  (DLY)) dly_line_re (
         .clk       (clk            ),
         .rst       (rst            ),
         .valid_in  (bf_valid_in    ),
@@ -70,7 +70,7 @@ module butterfly
         .data_out  (dly_line_out_re)
       );
       
-    delay_line #(.DW   (BF_I-1), .LEN  (DLY)) dly_line_im (
+    delay_line #(.DW   (BF_I+1), .LEN  (DLY)) dly_line_im (
           .clk       (clk            ),
           .rst       (rst            ),
           .valid_in  (bf_valid_in    ),
@@ -79,5 +79,7 @@ module butterfly
           .data_out  (dly_line_out_im)
         );
     
+    assign bf_out_re = sum_re;
+    assign bf_out_im = sum_im;
     
 endmodule

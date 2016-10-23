@@ -1,14 +1,14 @@
 `timescale 1ns / 1ps
 
 module butterfly
-#(  parameter BF_I = 12,
-    parameter BF_O = BF_I + 2,
+#(  parameter BF_I = 16,
+    parameter BF_O = BF_I,
     parameter DLY  = 8)
     (
         input                          clk,
         input                          rst,
         input                          bf_valid_in,
-        input                          bf_valid_out,
+        output logic                   bf_valid_out,
         input        signed [BF_I-1:0] bf_in_re,
         input        signed [BF_I-1:0] bf_in_im,
         output logic signed [BF_O-1:0] bf_out_re,
@@ -39,45 +39,54 @@ module butterfly
         end
     end
     
-    always @(*)
+    always @(posedge clk)
     begin
         if(rst) begin
-            sum_re = {(BF_O){1'b0}};
-            sum_im = {(BF_O){1'b0}};
-            dif_re = {(BF_I-1){1'b0}};
-            dif_im = {(BF_I-1){1'b0}};
+            sum_re <= {(BF_O){1'b0}};
+            sum_im <= {(BF_O){1'b0}};
+            dif_re <= {(BF_I-1){1'b0}};
+            dif_im <= {(BF_I-1){1'b0}};
         end else begin
             if(ctrl) begin
-                sum_re = dly_line_out_re + bf_re;
-                sum_im = dly_line_out_im + bf_im;
-                dif_re = dly_line_out_re - bf_re;
-                dif_im = dly_line_out_im - bf_im;
+                sum_re <= dly_line_out_re + bf_re;
+                sum_im <= dly_line_out_im + bf_im;
+                dif_re <= dly_line_out_re - bf_re;
+                dif_im <= dly_line_out_im - bf_im;
             end else begin
-                dif_re = bf_re;
-                dif_im = bf_im;
-                sum_re = dly_line_out_re;
-                sum_im = dly_line_out_im;
+                dif_re <= bf_re;
+                dif_im <= bf_im;
+                sum_re <= dly_line_out_re;
+                sum_im <= dly_line_out_im;
             end
         end
     end
     
-    delay_line #(.DW   (BF_I+1), .LEN  (DLY)) dly_line_re (
+    ram_feedback #(.W   (BF_I+1), .L  (DLY)) dly_line_re (
         .clk       (clk            ),
-        .rst       (rst            ),
+        .ena       (1'b1           ),
+        .reset     (rst            ),
+        .din       (dif_re         ),
         .valid_in  (bf_valid_in    ),
-        .data_in   (dif_re         ),
-        .valid_out (bf_valid_out   ),
-        .data_out  (dly_line_out_re)
+        .dout      (dly_line_out_re)
       );
       
-    delay_line #(.DW   (BF_I+1), .LEN  (DLY)) dly_line_im (
+    ram_feedback #(.W   (BF_I+1), .L  (DLY)) dly_line_im (
           .clk       (clk            ),
-          .rst       (rst            ),
+          .ena       (1'b1           ),
+          .reset     (rst            ),
+          .din       (dif_im         ),
           .valid_in  (bf_valid_in    ),
-          .data_in   (dif_im         ),
-          .valid_out (               ),
-          .data_out  (dly_line_out_im)
+          .dout      (dly_line_out_im)
         );
+        
+    always @(posedge clk)
+    begin
+        if(rst) begin
+            bf_valid_out <= 0;
+        end else begin
+            bf_valid_out <= bf_valid_in;
+        end
+    end
     
     assign bf_out_re = sum_re;
     assign bf_out_im = sum_im;

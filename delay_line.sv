@@ -1,39 +1,57 @@
 `timescale 1ns / 1ps
 
+module ram_feedback
+#(parameter W = 12,
+  parameter L = 256)
+(
+    input                           clk,
+    input                           ena,
+    input                           reset,
+    input  logic signed [(W-1):0]   din,
+    input  logic                    valid_in,
+    output logic signed [(W-1):0]   dout
+);
 
-module delay_line#(
-    parameter DW  = 12,
-    parameter LEN = 8)
-    (
-        input                 clk,
-        input                 rst,
-        input                 valid_in,
-        input        [DW-1:0] data_in,
-        output logic          valid_out,
-        output logic [DW-1:0] data_out
-    );
+    integer i;
+        
+    localparam B = $clog2(L);
     
+    logic  [(W-1) : 0] memory [(L-1):0];   //Pamiec W x L
     
-    logic [LEN-1:0][DW-1:0] FIFO;
+    logic [(B-1) : 0]   address;
+    logic signed [(W-1):0]     dout_r;
     
-    always @(posedge clk) begin
-        valid_out <= valid_in;
-    end
+    integer p;
     
-    always @(posedge clk) begin
-        if(rst) begin
-            for(int i = 0; i < LEN; i++) begin
-                FIFO[i] <= {DW{1'b0}};
+    logic   valid_d1;
+
+    always @(posedge clk or negedge reset) begin
+        if(reset) begin
+            for(p=0; p<L; p++) begin
+                memory[p] <= 0;
             end
-        end else begin
+            end else begin            
             if(valid_in) begin
-                for(int i = 0; i < LEN; i++) begin
-                    FIFO[i] <= FIFO[i-1];
+                    for(p=0; p < L; p=p+1) begin
+                        if(p == 0) begin
+                            memory[p] <= din;
+                        end else begin
+                            memory[p] <= memory[p-1];
+                        end
+                    end
                 end
-            end
+        end
+        end
+    
+    
+    assign dout = memory[L-1];
+    
+    initial begin
+        address <= 0;
+        
+        for (i = 0; i < L; i = i + 1) begin
+            memory[i] <= 0;
         end
     end
-    
-    assign data_out = FIFO[LEN-1];
-    
+
 endmodule

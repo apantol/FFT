@@ -3,7 +3,8 @@
 module tw_mem_st1(
     input                      clk,
     input                      rst,
-    input [2:0]                addr,
+    input [3:0]                addr,
+    input                      valid,
     output logic signed [11:0] twiddle_re,
     output logic signed [11:0] twiddle_im
     );
@@ -13,16 +14,19 @@ module tw_mem_st1(
         if(rst) begin
             twiddle_re <= 12'h0;
         end else begin
-            case(addr)
-                3'b000: twiddle_re <= 2047;
-                3'b001: twiddle_re <= 1891;
-                3'b010: twiddle_re <= 1447;
-                3'b011: twiddle_re <= 783;
-                3'b100: twiddle_re <= 0;
-                3'b101: twiddle_re <= -783;
-                3'b110: twiddle_re <= -1447;
-                3'b111: twiddle_re <= -1891;
-            endcase
+            if(valid) begin
+                case(addr)
+                    4'b0000: twiddle_re <= 2047;
+                    4'b0001: twiddle_re <= 1891;
+                    4'b0010: twiddle_re <= 1447;
+                    4'b0011: twiddle_re <= 783;
+                    4'b0100: twiddle_re <= 0;
+                    4'b0101: twiddle_re <= -783;
+                    4'b0110: twiddle_re <= -1447;
+                    4'b0111: twiddle_re <= -1891;
+                    default: twiddle_re <= 0;
+                endcase
+            end
         end
     end
     
@@ -31,16 +35,19 @@ module tw_mem_st1(
         if(rst) begin
             twiddle_im <= 12'h0;
         end else begin
-            case(addr)
-                3'b000: twiddle_im <= 0;
-                3'b001: twiddle_im <= -783;
-                3'b010: twiddle_im <= -1447;
-                3'b011: twiddle_im <= -1891;
-                3'b100: twiddle_im <= -2047;
-                3'b101: twiddle_im <= -1891;
-                3'b110: twiddle_im <= -1447;
-                3'b111: twiddle_im <= -783;
-            endcase
+            if(valid) begin
+                case(addr)
+                    4'b0000: twiddle_im <= 0;
+                    4'b0001: twiddle_im <= -783;
+                    4'b0010: twiddle_im <= -1447;
+                    4'b0011: twiddle_im <= -1891;
+                    4'b0100: twiddle_im <= -2047;
+                    4'b0101: twiddle_im <= -1891;
+                    4'b0110: twiddle_im <= -1447;
+                    4'b0111: twiddle_im <= -783;
+                    default: twiddle_im <= 0;
+                endcase
+        end
         end
     end
     

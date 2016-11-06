@@ -2,7 +2,7 @@
 
 module butterfly
 #(  parameter BF_I = 16,
-    parameter BF_O = BF_I,
+    parameter BF_O = BF_I+1,
     parameter DLY  = 8)
     (
         input                          clk,
@@ -34,29 +34,31 @@ module butterfly
            bf_re <= {BF_I{1'b0}}; 
            bf_im <= {BF_I{1'b0}};
         end else begin
-           bf_re <= bf_in_re;
-           bf_im <= bf_in_im;
+           if(bf_valid_in) begin
+            bf_re <= bf_in_re;
+            bf_im <= bf_in_im;
+           end
         end
     end
     
-    always @(posedge clk)
+    always @(*)
     begin
         if(rst) begin
-            sum_re <= {(BF_O){1'b0}};
-            sum_im <= {(BF_O){1'b0}};
-            dif_re <= {(BF_I-1){1'b0}};
-            dif_im <= {(BF_I-1){1'b0}};
+            sum_re = {(BF_O){1'b0}};
+            sum_im = {(BF_O){1'b0}};
+            dif_re = {(BF_I-1){1'b0}};
+            dif_im = {(BF_I-1){1'b0}};
         end else begin
             if(ctrl) begin
-                sum_re <= dly_line_out_re + bf_re;
-                sum_im <= dly_line_out_im + bf_im;
-                dif_re <= dly_line_out_re - bf_re;
-                dif_im <= dly_line_out_im - bf_im;
+                sum_re = dly_line_out_re + bf_re;
+                sum_im = dly_line_out_im + bf_im;
+                dif_re = dly_line_out_re - bf_re;
+                dif_im = dly_line_out_im - bf_im;
             end else begin
-                dif_re <= bf_re;
-                dif_im <= bf_im;
-                sum_re <= dly_line_out_re;
-                sum_im <= dly_line_out_im;
+                dif_re = bf_re;
+                dif_im = bf_im;
+                sum_re = dly_line_out_re;
+                sum_im = dly_line_out_im;
             end
         end
     end
